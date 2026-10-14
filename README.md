@@ -65,6 +65,7 @@ MIT © cent
 
 ## Current limitations
 
+- Chain reorganizations are not detected automatically. Explicitly re-sync an affected block range to replace its block, transaction, and address records.
 - The index reflects the configured JSON-RPC node and the explicit block range that has been synchronized.
 - It does not independently validate consensus or replace an archival node.
 - Large chain ranges require substantial time and local storage.
