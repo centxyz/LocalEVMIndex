@@ -35,6 +35,20 @@ npm start -- address 0xADDRESS
 npm start -- stats
 ```
 
+On Windows PowerShell, set the endpoint for the current session with `$env:`:
+
+```powershell
+$env:EVM_RPC_URL = 'https://your-ethereum-rpc.example'
+npm start -- status
+npm start -- sync --from 20000000 --to 20000010
+```
+
+You can also pass the endpoint directly without setting an environment variable:
+
+```bash
+npm start -- status --rpc https://your-ethereum-rpc.example
+```
+
 The index defaults to `.block-explorer/index.json`; override it with `--data path/to/index.json`. Large historical ranges can consume substantial disk space, so synchronize in deliberate ranges.
 
 ## Test
