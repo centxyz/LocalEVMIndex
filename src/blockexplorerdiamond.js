@@ -78,6 +78,15 @@ class BlockExplorerDiamond {
 
   indexBlock(block) {
     const number = hexToNumber(block.number);
+    // Replacing a block must also replace its transaction and address records.
+    const removed = new Set(this.data.blocks[number] ? Object.values(this.data.transactions)
+      .filter(tx => tx.blockNumber === number).map(tx => tx.hash) : []);
+    for (const hash of removed) delete this.data.transactions[hash];
+    for (const [address, hashes] of removed.size ? Object.entries(this.data.addresses) : []) {
+      const remaining = hashes.filter(hash => !removed.has(hash));
+      if (remaining.length) this.data.addresses[address] = remaining;
+      else delete this.data.addresses[address];
+    }
     const txs = Array.isArray(block.transactions) ? block.transactions : [];
     const summary = {
       number, hash: normalize(block.hash), parentHash: normalize(block.parentHash), timestamp: hexToNumber(block.timestamp),

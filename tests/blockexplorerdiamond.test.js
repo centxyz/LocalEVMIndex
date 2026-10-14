@@ -52,6 +52,24 @@ test('persists and reloads the index', async () => {
   assert.equal((await reloaded.sync()).blocksIndexed, 0);
 });
 
+test('reindexing a changed block removes stale transactions while preserving other blocks', async () => {
+  const { explorer, file, rpc } = await fixture();
+  await explorer.sync();
+  explorer.indexBlock({ ...block, number: '0x11', transactions: [{ ...block.transactions[0], hash: '0xOTHER' }] });
+  explorer.indexBlock({ ...block, hash: '0xREPLACEMENT', transactions: [] });
+  await explorer.persist();
+  const reloaded = new BlockExplorerDiamond({ rpcUrl: 'http://rpc.test', dataFile: file, fetchImpl: rpc.fetchImpl });
+  await reloaded.load();
+  assert.equal(reloaded.getBlock(16).hash, '0xreplacement');
+  assert.equal(reloaded.getBlock(16).transactionCount, 0);
+  assert.equal(reloaded.getTransaction('0xTX'), null);
+  assert.deepEqual(reloaded.getAddress('0xFROM').transactions.map(tx => tx.hash), ['0xother']);
+  assert.equal(reloaded.getTransaction('0xOTHER').blockNumber, 17);
+  reloaded.indexBlock({ ...block, number: '0x11', transactions: [] });
+  assert.equal(reloaded.getAddress('0xFROM').transactionCount, 0);
+  assert.equal(reloaded.stats().addresses, 0);
+});
+
 test('refuses to mix data from different chains', async () => {
   const initial = await fixture();
   await initial.explorer.sync();
